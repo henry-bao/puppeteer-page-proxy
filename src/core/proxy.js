@@ -9,6 +9,11 @@ const requestHandler = async (request, proxy, overrides = {}) => {
     if (!request.url().startsWith("http") && !request.url().startsWith("https")) {
         request.continue(); return;
     }
+
+    if (request.isInterceptResolutionHandled()) {
+        return;
+    }
+
     const cookieHandler = new CookieHandler(request);
     // Request options for GOT accounting for overrides
     const options = {
@@ -78,7 +83,7 @@ const useProxyPer = {
     CDPPage: async (page, proxy) => {
         await page.setRequestInterception(true);
         const listener = "$ppp_requestListener";
-        removeRequestListener(page, listener);
+        //removeRequestListener(page, listener);
         const f = {[listener]: async (request) => {
             await requestHandler(request, proxy);
         }};
@@ -89,7 +94,7 @@ const useProxyPer = {
 
 // Main function
 const useProxy = async (target, data) => {
-    useProxyPer[target.constructor.name](target, data);
+    await useProxyPer[target.constructor.name](target, data);
 };
 
 module.exports = useProxy;
